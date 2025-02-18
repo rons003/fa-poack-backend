@@ -143,7 +143,8 @@ def receiving_report(id):
                 CASE
                     WHEN SUM(b.qty_recd) > SUM(d.qty_invoiced) THEN 'Open'
                     ELSE 'Closed'
-                END AS status
+                END AS status,
+                a.loc_code
             FROM
                 {database}.grn_batch a
                     INNER JOIN
@@ -174,7 +175,8 @@ def receiving_report(id):
                 "grn_remarks": row[9],
                 "category": row[10],
                 "ap_no": row[11],
-                "status": row[12]
+                "status": row[12],
+                "loc_code": row[13]
             })
 
     except Exception as e:

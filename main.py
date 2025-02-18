@@ -11,6 +11,7 @@ app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 app.config["MYSQL_USER"] = "root"
 app.config["MYSQL_PASSWORD"] = ""
+# app.config['MYSQL_CURSORCLASS'] = "DictCurso"
 jwt = JWTManager(app)
 
 app.register_blueprint(rr_bp, url_prefix='/fa')

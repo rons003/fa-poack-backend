@@ -82,7 +82,8 @@ def receiving_report(id):
                     WHEN SUM(b.qty_recd) > SUM(d.qty_invoiced) THEN 'Open'
                     ELSE 'Closed'
                 END AS status,
-                a.loc_code
+                a.loc_code,
+                (SELECT t1.SAPcode FROM {database}.suppliers t1 WHERE t1.supplier_id = a.supplier_id) as card_code
             FROM
                 {database}.grn_batch a
                     INNER JOIN
@@ -155,16 +156,37 @@ def details(id):
                 SELECT
                     serialise_id,
                     serialise_lot_no,
-                    serialise_chasis_no
+                    serialise_chasis_no,
+                    True as available
                 FROM
                     {database}.item_serialise
                 WHERE
                     serialise_grn_items_id = {row["id"]}
                 AND
-                    invoice = 0"""
+                    invoice = 0
+                AND 
+                    serialise_trans_type = 25"""
             cur = db.connection.cursor()
             cur.execute(query)
             serials = cur.fetchall()
+            query = f"""
+                SELECT DISTINCT
+                    a.ap_support_type,
+                    a.distribution,
+                    'APSUPPORT' AS item_code,
+                    ifnull(b.price, 0) as price
+                FROM
+                    {database}.item_apsupport_type a
+                        LEFT JOIN
+                    {database}.item_apsupport_price b ON a.id = b.apsupport_type_id
+                        LEFT JOIN
+                    {database}.stock_category c ON c.category_id = b.category_id
+                WHERE
+                    a.inactive = '0'
+                ORDER BY 2"""
+            cur = db.connection.cursor()
+            cur.execute(query)
+            aps = cur.fetchall()
             result.append({
                 "id": row["id"],
                 "grn_batch_id": row["grn_batch_id"],
@@ -179,7 +201,8 @@ def details(id):
                 "category": row["category"],
                 "serialized": row["serialized"],
                 "po_detail_item": row["po_detail_item"],
-                "serials": serials
+                "serials": serials,
+                "apsupports": aps
             })
     except Exception as e:
         print(str(e))

@@ -9,9 +9,7 @@ from routes.sap_bp import sap_bp
 app = Flask(__name__)
 
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
-app.config["MYSQL_USER"] = "root"
-app.config["MYSQL_PASSWORD"] = ""
-app.config['MYSQL_CURSORCLASS'] = "DictCursor"
+app.config.from_file("config.json", load=json.load)
 jwt = JWTManager(app)
 
 app.register_blueprint(rr_bp, url_prefix='/fa')

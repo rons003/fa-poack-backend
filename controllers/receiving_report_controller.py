@@ -136,7 +136,8 @@ def details(id):
                     {database}.stock_master t1
                 WHERE
                     t1.stock_id = a.item_code) AS serialized,
-            a.po_detail_item
+            a.po_detail_item,
+            c.supplier_id
         FROM
             {database}.grn_items a
                 LEFT JOIN
@@ -177,12 +178,16 @@ def details(id):
                     ifnull(b.price, 0) as price
                 FROM
                     {database}.item_apsupport_type a
-                        LEFT JOIN
+                        INNER JOIN
                     {database}.item_apsupport_price b ON a.id = b.apsupport_type_id
-                        LEFT JOIN
+                        INNER JOIN
                     {database}.stock_category c ON c.category_id = b.category_id
                 WHERE
                     a.inactive = '0'
+                AND
+                    b.category_id = {row["category_id"]}
+                AND
+                    b.supplier_id = {row["supplier_id"]}
                 ORDER BY 2"""
             cur = db.connection.cursor()
             cur.execute(query)
